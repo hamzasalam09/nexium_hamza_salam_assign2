@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { scrapeBlogContent } from '../utils/scraper';
-import { generateSummary, translateToUrdu } from '../utils/summarizer';
-import { urduDictionary } from '../utils/urduDictionary';
+import { scrapeBlogContent } from './utils/scraper';
+import { generateSummary, translateToUrdu } from './utils/summarizer';
+import { urduDictionary } from './utils/urduDictionary';
 
 export default function BlogSummarizerPage() {
   const [url, setUrl] = useState('');

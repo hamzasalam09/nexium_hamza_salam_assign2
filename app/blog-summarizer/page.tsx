@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { scrapeBlogContent } from '../utils/scraper';
 import { generateSummary, translateToUrdu } from '../utils/summarizer';
-import { saveSummaryToSupabase, saveFullTextToMongoDB } from '../utils/database';
 import { urduDictionary } from '../utils/urduDictionary';
 
 export default function BlogSummarizerPage() {
@@ -24,19 +23,28 @@ export default function BlogSummarizerPage() {
       const englishSummary = generateSummary(content);
       const urduSummary = translateToUrdu(englishSummary, urduDictionary);
 
-      // Save to databases
-      await Promise.all([
-        saveSummaryToSupabase({
+      // Save to databases through API
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           url,
-          summary: englishSummary,
-          urduSummary
+          englishSummary,
+          urduSummary,
+          fullText: content
         }),
-        saveFullTextToMongoDB({
-          url,
-          fullText: content,
-          timestamp: new Date()
-        })
-      ]);
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save data');
+      }
+
+      setSummary({
+        english: englishSummary,
+        urdu: urduSummary
+      });
 
       setSummary({
         english: englishSummary,

@@ -27,9 +27,9 @@ export default function BlogSummarizerPage() {
       // Scrape blog content
       const content = await scrapeBlogContent(url);
 
-      // Generate summary
-      const englishSummary = generateSummary(content);
-      const urduSummary = translateToUrdu(englishSummary, urduDictionary);
+      // Generate summary and translation
+      const englishSummary = await generateSummary(content);
+      const urduSummary = await translateToUrdu(englishSummary);
 
       // Save to databases through API
       const response = await fetch('/api/summarize', {

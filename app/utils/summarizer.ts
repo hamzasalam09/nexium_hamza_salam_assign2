@@ -1,33 +1,41 @@
-export function generateSummary(text: string): string {
-  // Split text into sentences
-  const sentences = text.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0);
-  
-  // Simple scoring based on sentence length and common important words
-  const importantWords = ['important', 'significant', 'key', 'main', 'crucial', 'essential'];
-  
-  const scoredSentences = sentences.map(sentence => {
-    let score = 0;
-    
-    // Score based on sentence length (prefer medium-length sentences)
-    const wordCount = sentence.split(' ').length;
-    if (wordCount > 5 && wordCount < 25) {
-      score += 3;
-    }
-    
-    // Score based on important words
-    importantWords.forEach(word => {
-      if (sentence.toLowerCase().includes(word)) {
-        score += 2;
-      }
+import { cohere } from 'cohere-ai';
+
+// Initialize Cohere client
+cohere.init(process.env.COHERE_API_KEY as string);
+
+export async function generateSummary(text: string): Promise<string> {
+  try {
+    const response = await cohere.summarize({
+      text,
+      length: 'medium',
+      format: 'paragraph',
+      extractiveness: 'medium',
+      temperature: 0.3,
     });
-    
-    return { sentence: sentence.trim(), score };
-  });
-  
-  // Sort by score and take top 3 sentences
-  const topSentences = scoredSentences
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
+
+    return response.body.summary;
+  } catch (error) {
+    console.error('Error generating summary:', error);
+    throw new Error('Failed to generate summary');
+  }
+}
+
+export async function translateToUrdu(text: string): Promise<string> {
+  try {
+    const response = await cohere.generate({
+      prompt: `Translate the following English text to Urdu:\n\n${text}\n\nUrdu translation:`,
+      max_tokens: 500,
+      temperature: 0.3,
+      k: 0,
+      stop_sequences: [],
+      return_likelihoods: 'NONE'
+    });
+
+    return response.body.generations[0].text.trim();
+  } catch (error) {
+    console.error('Error translating to Urdu:', error);
+    throw new Error('Failed to translate to Urdu');
+  }
     .map(item => item.sentence);
   
   return topSentences.join('. ') + '.';

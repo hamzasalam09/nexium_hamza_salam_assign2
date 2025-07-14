@@ -13,23 +13,36 @@ export default function BlogSummarizerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState({ english: '', urdu: '' });
+  const [step, setStep] = useState<'idle' | 'scraping' | 'summarizing' | 'translating'>('idle');
 
   const handleSummarize = async () => {
     if (!url) {
-      setError('Please enter a blog URL');
+      setError('Please enter a valid blog URL');
       return;
     }
 
     try {
       setLoading(true);
       setError('');
-
+      setSummary({ english: '', urdu: '' });
+      
       // Scrape blog content
-      const content = await scrapeBlogContent(url);
+      setStep('scraping');
+      const content = await scrapeBlogContent(url).catch(() => {
+        throw new Error('Failed to scrape the blog content. Please check the URL and try again.');
+      });
 
-      // Generate summary and translation
-      const englishSummary = await generateSummary(content);
-      const urduSummary = await translateToUrdu(englishSummary);
+      // Generate summary
+      setStep('summarizing');
+      const englishSummary = await generateSummary(content).catch(() => {
+        throw new Error('Failed to generate summary. Please try again.');
+      });
+
+      // Translate to Urdu
+      setStep('translating');
+      const urduSummary = await translateToUrdu(englishSummary).catch(() => {
+        throw new Error('Failed to translate to Urdu. Please try again.');
+      });
 
       // Save to databases through API
       const response = await fetch('/api/summarize', {
@@ -81,7 +94,16 @@ export default function BlogSummarizerPage() {
               disabled={loading || !url}
               className="w-full"
             >
-              {loading ? 'Processing...' : 'Summarize'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin">⌛</span>
+                  {step === 'scraping' && 'Scraping blog...'}
+                  {step === 'summarizing' && 'Generating summary...'}
+                  {step === 'translating' && 'Translating to Urdu...'}
+                </span>
+              ) : (
+                'Summarize'
+              )}
             </Button>
 
             {error && (

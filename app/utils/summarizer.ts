@@ -1,8 +1,12 @@
 import { CohereClient } from 'cohere-ai';
 
+if (!process.env.NEXT_PUBLIC_COHERE_API_KEY) {
+  throw new Error('NEXT_PUBLIC_COHERE_API_KEY is not set in environment variables');
+}
+
 // Initialize Cohere client
 const cohere = new CohereClient({
-  token: process.env.COHERE_API_KEY as string
+  token: process.env.NEXT_PUBLIC_COHERE_API_KEY
 });
 
 export async function generateSummary(text: string): Promise<string> {

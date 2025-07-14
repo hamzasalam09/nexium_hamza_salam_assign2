@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +8,23 @@ import { scrapeBlogContent } from './utils/scraper';
 import { generateSummary, translateToUrdu } from './utils/summarizer';
 import { urduDictionary } from './utils/urduDictionary';
 
+import { validateConfig } from './config';
+
 export default function BlogSummarizerPage() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState({ english: '', urdu: '' });
   const [step, setStep] = useState<'idle' | 'scraping' | 'summarizing' | 'translating'>('idle');
+
+  // Validate config on component mount
+  useEffect(() => {
+    try {
+      validateConfig();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Configuration error');
+    }
+  }, []);
 
   const handleSummarize = async () => {
     if (!url) {

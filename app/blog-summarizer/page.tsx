@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { scrapeBlogContent } from '../utils/scraper';
 import { generateSummary, translateToUrdu } from '../utils/summarizer';
 import { urduDictionary } from '../utils/urduDictionary';
@@ -12,6 +15,11 @@ export default function BlogSummarizerPage() {
   const [summary, setSummary] = useState({ english: '', urdu: '' });
 
   const handleSummarize = async () => {
+    if (!url) {
+      setError('Please enter a blog URL');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -45,11 +53,6 @@ export default function BlogSummarizerPage() {
         english: englishSummary,
         urdu: urduSummary
       });
-
-      setSummary({
-        english: englishSummary,
-        urdu: urduSummary
-      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -58,44 +61,62 @@ export default function BlogSummarizerPage() {
   };
 
   return (
+    <main className="container mx-auto px-4 py-8">
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Blog Summarizer</h1>
-      
-      <div className="max-w-2xl mx-auto">
-        <div className="flex flex-col gap-4">
-          <input
-            type="url"
-            placeholder="Enter blog URL"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="w-full p-2 border rounded-md"
-            disabled={loading}
-          />
-          <button
-            onClick={handleSummarize}
-            disabled={loading || !url}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-blue-300"
-          >
-            {loading ? 'Processing...' : 'Summarize'}
-          </button>
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-3xl text-center">Blog Summarizer</CardTitle>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-4">
+            <Input
+              type="url"
+              placeholder="Enter blog URL"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={loading}
+            />
+            <Button 
+              onClick={handleSummarize}
+              disabled={loading || !url}
+              className="w-full"
+            >
+              {loading ? 'Processing...' : 'Summarize'}
+            </Button>
 
-          {error && (
-            <div className="bg-red-100 text-red-700 p-4 rounded-md">
-              {error}
-            </div>
-          )}
+            {error && (
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="pt-6 text-red-600">
+                  {error}
+                </CardContent>
+              </Card>
+            )}
 
-          {summary.english && (
-            <div className="mt-8 space-y-6">
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h2 className="font-bold mb-2">English Summary</h2>
-                <p>{summary.english}</p>
+            {summary.english && (
+              <div className="mt-8 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">English Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{summary.english}</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">Urdu Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p dir="rtl" className="font-urdu text-right">{summary.urdu}</p>
+                  </CardContent>
+                </Card>
               </div>
-              
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h2 className="font-bold mb-2">Urdu Summary</h2>
-                <p dir="rtl" className="font-urdu">{summary.urdu}</p>
-              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
             </div>
           )}
         </div>

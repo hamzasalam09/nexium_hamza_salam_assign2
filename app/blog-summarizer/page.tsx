@@ -62,7 +62,6 @@ export default function BlogSummarizerPage() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-    <div className="container mx-auto px-4 py-8">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-3xl text-center">Blog Summarizer</CardTitle>
@@ -117,10 +116,6 @@ export default function BlogSummarizerPage() {
           </div>
         </CardContent>
       </Card>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }

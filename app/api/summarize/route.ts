@@ -1,90 +1,107 @@
-import { NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
-import { createClient } from '@supabase/supabase-js';
-import { config } from '../../config';
+import { NextRequest, NextResponse } from 'next/server'
+import { scrapeBlogContent } from '@/lib/scraper'
+import { generateSummary } from '@/lib/summarizer'
+import { translateToUrdu } from '@/lib/translator'
+import { databaseService } from '@/lib/database'
 
-export async function POST(request: Request) {
-  // Validate environment variables
-  if (!config.supabase.url || !config.supabase.key) {
-    console.error('Missing Supabase configuration');
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 }
-    );
-  }
-
-  if (!config.mongodb.uri) {
-    console.error('Missing MongoDB configuration');
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 }
-    );
-  }
-
-  let mongoClient: MongoClient | null = null;
-
+export async function POST(request: NextRequest) {
   try {
-    // Validate request body
-    const body = await request.json();
-    const { url, englishSummary, urduSummary, fullText } = body;
+    const { url } = await request.json()
 
-    if (!url || !englishSummary || !urduSummary || !fullText) {
+    if (!url) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'URL is required' },
         { status: 400 }
-      );
+      )
     }
 
-    // Initialize Supabase client
-    const supabase = createClient(config.supabase.url, config.supabase.key);
-
-    // Initialize MongoDB client
-    mongoClient = new MongoClient(config.mongodb.uri);
-    await mongoClient.connect();
-
-    // Save summary to Supabase
-    const { error: supabaseError } = await supabase
-      .from('blog_summaries')
-      .insert([{
-        url,
-        summary: englishSummary,
-        urdu_summary: urduSummary,
-        created_at: new Date().toISOString()
-      }]);
-
-    if (supabaseError) {
-      console.error('Supabase error:', supabaseError);
-      throw new Error('Failed to save summary to Supabase');
+    // Validate URL format
+    try {
+      new URL(url)
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid URL format' },
+        { status: 400 }
+      )
     }
 
-    // Save full text to MongoDB
-    const db = mongoClient.db('blog_summarizer');
-    await db.collection('full_texts').insertOne({
-      url,
-      fullText,
-      timestamp: new Date()
-    });
+    // Step 1: Scrape the blog content
+    console.log('Scraping content from:', url)
+    const scrapedContent = await scrapeBlogContent(url)
 
-    return NextResponse.json({ 
+    // Generate summary using Cohere AI
+    console.log('Generating summary with Cohere AI...')
+    const summaryResult = await generateSummary(scrapedContent.content)
+
+    // Translate to Urdu using Cohere AI
+    console.log('Translating to Urdu with Cohere AI...')
+    const summaryUrdu = await translateToUrdu(summaryResult.summary)
+
+    // Step 4: Save to databases
+    console.log('Saving to databases...')
+    const saveResult = await databaseService.saveToBothDatabases(
+      scrapedContent,
+      summaryResult,
+      summaryUrdu
+    )
+
+    // Return the results
+    return NextResponse.json({
       success: true,
-      message: 'Successfully saved summary and full text'
-    });
+      data: {
+        title: scrapedContent.title,
+        url: scrapedContent.url,
+        summary: summaryResult.summary,
+        summaryUrdu,
+        keyPoints: summaryResult.keyPoints,
+        wordCount: summaryResult.wordCount,
+        originalLength: summaryResult.originalLength,
+        mongoId: saveResult.data?.mongoId,
+        supabaseId: saveResult.data?.supabaseId,
+        scrapedAt: scrapedContent.scrapedAt,
+        aiPowered: true
+      }
+    })
 
   } catch (error) {
-    console.error('Error in API route:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Error in summarize API:', error)
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    
     return NextResponse.json(
-      { error: errorMessage },
+      { 
+        error: 'Failed to process blog post',
+        details: errorMessage
+      },
       { status: 500 }
-    );
-  } finally {
-    // Ensure MongoDB connection is closed
-    if (mongoClient) {
-      try {
-        await mongoClient.close();
-      } catch (closeError) {
-        console.error('Error closing MongoDB connection:', closeError);
-      }
+    )
+  }
+}
+
+export async function GET() {
+  try {
+    // Get all summaries from Supabase
+    const result = await databaseService.getAllSummaryRecords()
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch summaries')
     }
+    
+    return NextResponse.json({
+      success: true,
+      data: result.data
+    })
+  } catch (error) {
+    console.error('Error fetching summaries:', error)
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch summaries',
+        details: errorMessage
+      },
+      { status: 500 }
+    )
   }
 }

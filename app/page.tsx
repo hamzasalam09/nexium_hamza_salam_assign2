@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { scrapeBlogContent } from './utils/scraper';
 import { generateSummary, translateToUrdu } from './utils/summarizer';
-import { urduDictionary } from './utils/urduDictionary';
 
 import { validateConfig } from './config';
 

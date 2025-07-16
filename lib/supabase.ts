@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration interface
 interface SupabaseConfig {
@@ -95,7 +95,7 @@ export async function checkSupabaseHealth(): Promise<{
 }> {
   try {
     // Test connection by fetching table information
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')
@@ -215,7 +215,7 @@ export async function testTableAccess(tableName: string): Promise<{
 }
 
 // Enhanced error handler for Supabase operations
-export function handleSupabaseError(error: any): {
+export function handleSupabaseError(error: unknown): {
   message: string;
   code?: string;
   details?: string;
@@ -225,11 +225,13 @@ export function handleSupabaseError(error: any): {
     return { message: 'Unknown error occurred' };
   }
 
+  const err = error as { message?: string; code?: string; details?: string; hint?: string };
+
   return {
-    message: error.message || 'Database operation failed',
-    code: error.code,
-    details: error.details,
-    hint: error.hint,
+    message: err.message || 'Database operation failed',
+    code: err.code,
+    details: err.details,
+    hint: err.hint,
   };
 }
 

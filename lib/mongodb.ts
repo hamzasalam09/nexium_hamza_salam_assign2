@@ -142,8 +142,8 @@ export async function closeMongoConnection(): Promise<void> {
 
 // Database statistics function
 export async function getMongoStats(): Promise<{
-  serverStatus: any;
-  dbStats: any;
+  serverStatus: Record<string, unknown> | null;
+  dbStats: Record<string, unknown> | null;
   error?: string;
 }> {
   try {

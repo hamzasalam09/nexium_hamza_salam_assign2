@@ -467,7 +467,7 @@ export class DatabaseService {
         totalDocuments,
         totalSize: stats.size || 0,
       };
-    } catch (error) {
+    } catch {
       return { totalDocuments: 0, totalSize: 0 };
     }
   }
@@ -482,7 +482,7 @@ export class DatabaseService {
         .select('*', { count: 'exact', head: true });
 
       return { totalRecords: error ? 0 : count || 0 };
-    } catch (error) {
+    } catch {
       return { totalRecords: 0 };
     }
   }

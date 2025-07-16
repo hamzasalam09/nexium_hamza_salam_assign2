@@ -300,12 +300,13 @@ export class WebScraper {
   /**
    * Extract and clean text from a specific element
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extractTextFromElement($: cheerio.CheerioAPI, element: cheerio.Cheerio<any>): string {
     // Remove unwanted elements
     element.find('script, style, nav, header, footer, aside, .sidebar, .menu, .navigation, .breadcrumb, .social-share, .comments').remove();
     
     // Get text content
-    let text = element.text().trim();
+    const text = element.text().trim();
     
     // Clean and normalize the text
     return this.cleanText(text);

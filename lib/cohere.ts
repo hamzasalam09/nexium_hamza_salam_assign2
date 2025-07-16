@@ -11,12 +11,12 @@ import {
 let cohereClient: CohereClient | null = null;
 
 try {
-  if (process.env.COHERE_API_KEY) {
+  if (process.env.NEXT_PUBLIC_COHERE_API_KEY) {
     cohereClient = new CohereClient({
-      token: process.env.COHERE_API_KEY,
+      token: process.env.NEXT_PUBLIC_COHERE_API_KEY,
     });
   } else {
-    console.warn('COHERE_API_KEY not found in environment variables');
+    console.warn('NEXT_PUBLIC_COHERE_API_KEY not found in environment variables');
   }
 } catch (error) {
   console.error('Failed to initialize Cohere client:', error);

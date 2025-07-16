@@ -53,9 +53,9 @@ export default function BlogSummarizerPage() {
     const messages = {
       idle: 'Ready to process',
       scraping: 'Extracting content from blog...',
-      summarizing: 'Generating intelligent summary...',
-      translating: 'Translating to Urdu...',
-      saving: 'Saving results...',
+      summarizing: 'Generating summary with Cohere AI...',
+      translating: 'Translating to Urdu with Cohere AI...',
+      saving: 'Saving to MongoDB & Supabase...',
       completed: 'Processing completed!'
     };
     return messages[currentStep] || '';
@@ -254,15 +254,44 @@ export default function BlogSummarizerPage() {
 
             {/* Progress Bar */}
             {loading && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <ProgressBar 
                   progress={progress} 
                   showPercentage={true}
                   className="mt-4"
                 />
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <LoadingDots className="text-primary" />
-                  <span>{getStepMessage(step)}</span>
+                <div className="flex items-center justify-center gap-3 text-sm">
+                  {step === 'scraping' && (
+                    <>
+                      <BookOpenIcon size={16} className="text-blue-600 dark:text-blue-400" />
+                      <span className="text-blue-700 dark:text-blue-300 font-medium">{getStepMessage(step)}</span>
+                    </>
+                  )}
+                  {(step === 'summarizing' || step === 'translating') && (
+                    <>
+                      <BrainIcon size={16} className="text-blue-600 dark:text-blue-400" />
+                      <span className="text-blue-700 dark:text-blue-300 font-medium">{getStepMessage(step)}</span>
+                    </>
+                  )}
+                  {step === 'saving' && (
+                    <>
+                      <div className="flex items-center gap-1">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-green-600 dark:text-green-400">
+                          <path d="M17.193 9.555c-1.264-5.58-4.252-7.414-4.573-8.115-.28-.394-.53-.954-.735-1.44-.036.495-.055.685-.523 1.184-.723.566-4.438 3.682-4.74 10.02-.282 5.912 4.27 9.435 4.888 9.884l.07.05A73.49 73.49 0 0111.91 24h.481c.114-1.032.284-2.056.51-3.07.417-.296.604-.463.85-.693a11.342 11.342 0 003.639-8.464c.01-.814-.103-1.662-.197-2.218z"/>
+                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-purple-600 dark:text-purple-400">
+                          <path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.401.562a1.04 1.04 0 0 0 0 1.028l.401.562 9.081 12.261a.396.396 0 0 0 .716-.233V14.646h9.362a.396.396 0 0 0 .362-.396V9.75a.396.396 0 0 0-.362-.396z"/>
+                        </svg>
+                      </div>
+                      <span className="text-green-700 dark:text-green-300 font-medium">{getStepMessage(step)}</span>
+                    </>
+                  )}
+                  {step !== 'scraping' && step !== 'summarizing' && step !== 'translating' && step !== 'saving' && (
+                    <>
+                      <LoadingDots className="text-primary" />
+                      <span className="text-muted-foreground font-medium">{getStepMessage(step)}</span>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -358,11 +387,71 @@ export default function BlogSummarizerPage() {
         )}
       </div>
 
+      {/* Technology Stack Section */}
+      <div className="mt-16 mb-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold mb-4">Powered by Industry-Leading Technologies</h3>
+            <p className="text-muted-foreground">
+              Built with cutting-edge AI and database technologies for optimal performance
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Cohere AI */}
+            <div className="group p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <BrainIcon size={20} className="text-white" />
+                </div>
+                <h4 className="font-bold text-blue-900 dark:text-blue-100">Cohere AI</h4>
+              </div>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Advanced natural language processing for intelligent summarization and multilingual translation
+              </p>
+            </div>
+
+            {/* MongoDB */}
+            <div className="group p-6 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-green-600 p-2 rounded-lg">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                    <path d="M17.193 9.555c-1.264-5.58-4.252-7.414-4.573-8.115-.28-.394-.53-.954-.735-1.44-.036.495-.055.685-.523 1.184-.723.566-4.438 3.682-4.74 10.02-.282 5.912 4.27 9.435 4.888 9.884l.07.05A73.49 73.49 0 0111.91 24h.481c.114-1.032.284-2.056.51-3.07.417-.296.604-.463.85-.693a11.342 11.342 0 003.639-8.464c.01-.814-.103-1.662-.197-2.218z"/>
+                  </svg>
+                </div>
+                <h4 className="font-bold text-green-900 dark:text-green-100">MongoDB</h4>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                Flexible NoSQL database for storing and managing blog content and summaries at scale
+              </p>
+            </div>
+
+            {/* Supabase */}
+            <div className="group p-6 rounded-xl bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-purple-600 p-2 rounded-lg">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                    <path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.401.562a1.04 1.04 0 0 0 0 1.028l.401.562 9.081 12.261a.396.396 0 0 0 .716-.233V14.646h9.362a.396.396 0 0 0 .362-.396V9.75a.396.396 0 0 0-.362-.396z"/>
+                  </svg>
+                </div>
+                <h4 className="font-bold text-purple-900 dark:text-purple-100">Supabase</h4>
+              </div>
+              <p className="text-sm text-purple-700 dark:text-purple-300">
+                Open-source backend platform providing real-time database and authentication services
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer className="mt-20 pb-8">
+      <footer className="mt-8 pb-8">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-muted-foreground">
-            Powered by advanced AI technology • Built with accessibility and performance in mind
+          <p className="text-sm text-muted-foreground mb-2">
+            Powered by <span className="font-semibold">Cohere AI</span>, <span className="font-semibold">MongoDB</span> & <span className="font-semibold">Supabase</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Built with accessibility and performance in mind • Next.js & Tailwind CSS
           </p>
         </div>
       </footer>
